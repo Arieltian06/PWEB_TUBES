@@ -14,7 +14,15 @@ const About = () => {
       <div className="container section">
         <div className="grid-2" style={{ alignItems: 'center', gap: '48px', marginBottom: '80px' }}>
           <div>
-            <img src="public/images/kami.jpeg" alt="About Team" style={{ width: '100%', borderRadius: '24px', boxShadow: 'var(--shadow-lg)' }} />
+            {/* 👇 Path diperbaiki: hapus "public/" */}
+            <img 
+              src="/images/kami.jpeg" 
+              alt="Tim Learnify" 
+              style={{ width: '100%', borderRadius: '24px', boxShadow: 'var(--shadow-lg)' }}
+              onError={(e) => { 
+                e.target.src = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=500&h=400&fit=crop'; 
+              }}
+            />
           </div>
           <div>
             <h3 style={{ fontSize: '28px', marginBottom: '24px', color: 'var(--rg-blue-dark)' }}>Visi Kami</h3>
@@ -50,4 +58,4 @@ const About = () => {
   );
 };
 
-export default About;
+ export default About;
