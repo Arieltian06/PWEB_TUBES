@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Award, Download, Calendar, CheckCircle, BookOpen } from 'lucide-react';
+import { ArrowLeft, Award, Download, Calendar, CheckCircle, Eye } from 'lucide-react';
 
 const Certificates = () => {
   const navigate = useNavigate();
@@ -17,25 +17,18 @@ const Certificates = () => {
     setUserData(user);
   }, [navigate]);
 
-  // Data sertifikat (simulasi)
-  const certificates = [
-    {
-      id: 1,
-      title: 'Tryout SNBT Intensif Mingguan',
-      date: '15 April 2026',
-      score: 685,
-      type: 'Tryout',
-      completed: true
-    },
-    {
-      id: 2,
-      title: 'Kupas Tuntas Penalaran Umum & Kuantitatif',
-      date: '10 April 2026',
-      score: 720,
-      type: 'Live Teaching',
-      completed: true
-    }
-  ];
+  // Ambil sertifikat dari localStorage
+  const certificates = userData?.certificates || [];
+
+  // Hitung rata-rata skor
+  const averageScore = certificates.length > 0 
+    ? Math.round(certificates.reduce((sum, cert) => sum + cert.score, 0) / certificates.length) 
+    : 0;
+
+  // Navigasi ke halaman preview sertifikat
+  const handleViewCertificate = (certId) => {
+    navigate(`/certificate/${certId}`);
+  };
 
   if (!userData) return null;
 
@@ -70,8 +63,8 @@ const Certificates = () => {
             <p style={{ color: 'var(--text-gray)', marginBottom: '32px' }}>
               Selesaikan kursus atau tryout untuk mendapatkan sertifikat
             </p>
-            <Link to="/courses" className="btn btn-primary btn-interactive" style={{ padding: '12px 32px' }}>
-              Lihat Kursus
+            <Link to="/dashboard" className="btn btn-primary btn-interactive" style={{ padding: '12px 32px' }}>
+              Lanjutkan Belajar
             </Link>
           </div>
         ) : (
@@ -91,20 +84,51 @@ const Certificates = () => {
                     <Award size={32} color="white" />
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '18px', marginBottom: '4px', color: 'var(--text-dark)' }}>{cert.title}</h4>
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <h4 style={{ fontSize: '18px', margin: 0, color: 'var(--text-dark)' }}>{cert.title}</h4>
+                      <span style={{ 
+                        background: '#10B981', 
+                        color: 'white', 
+                        padding: '2px 8px', 
+                        borderRadius: '100px', 
+                        fontSize: '10px', 
+                        fontWeight: 700 
+                      }}>
+                        SELESAI
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--text-gray)' }}>
                         <Calendar size={14} /> {cert.date}
                       </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--text-gray)' }}>
                         <CheckCircle size={14} color="var(--rg-teal)" /> Skor: {cert.score}
                       </span>
+                      {cert.level && (
+                        <span style={{ 
+                          background: 'var(--bg-light)', 
+                          padding: '2px 8px', 
+                          borderRadius: '4px', 
+                          fontSize: '11px', 
+                          fontWeight: 600,
+                          color: 'var(--text-gray)',
+                          textTransform: 'uppercase'
+                        }}>
+                          {cert.level}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
-                <button className="btn btn-outline btn-interactive" style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Download size={16} /> Unduh
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    onClick={() => handleViewCertificate(cert.id)}
+                    className="btn btn-outline btn-interactive" 
+                    style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <Eye size={16} /> Lihat
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -119,11 +143,11 @@ const Certificates = () => {
               <p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>Sertifikat</p>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--rg-teal)' }}>2</div>
+              <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--rg-teal)' }}>{certificates.length}</div>
               <p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>Kursus Selesai</p>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--rg-teal)' }}>702</div>
+              <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--rg-teal)' }}>{averageScore}</div>
               <p style={{ color: 'var(--text-gray)', fontSize: '14px' }}>Rata-rata Skor</p>
             </div>
           </div>

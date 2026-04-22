@@ -35,143 +35,92 @@ const Dashboard = () => {
     setIsLoading(false);
   }, [navigate]);
 
-  // 👇 Fungsi untuk mendapatkan link materi berdasarkan course (LENGKAP & SPESIFIK)
+  // 👇 Fungsi untuk mendapatkan link materi berdasarkan course
   const getCourseLink = (course) => {
     const courseId = course.id;
     const courseName = course.name || '';
     const courseType = course.type || '';
     
-    // ========== LINK SPESIFIK BERDASARKAN ID COURSE ==========
     const specificLinks = {
-      // UTBK Courses
-      1: {
-        type: 'video',
-        link: 'https://www.youtube.com/results?search_query=SNBT+2025+video+pembelajaran+lengkap'
-      },
-      5: {
-        type: 'web',
-        link: 'https://www.ruangguru.com/blog/persiapan-ujian-mandiri-ptn'
-      },
-      101: {
-        type: 'tryout',
-        link: 'https://www.ruangguru.com/tryout/utbk-snbt'
-      },
-      102: {
-        type: 'video',
-        link: 'https://www.youtube.com/results?search_query=penalaran+umum+kuantitatif+UTBK'
-      },
-      103: {
-        type: 'video',
-        link: 'https://www.youtube.com/results?search_query=strategi+lolos+PTN+2026'
-      },
-      
-      // SMA Courses
-      3: {
-        type: 'live',
-        link: 'https://www.youtube.com/results?search_query=live+teaching+SMA+interaktif'
-      },
-      201: {
-        type: 'video',
-        link: 'https://www.youtube.com/results?search_query=fisika+kimia+SMA+lanjutan+materi'
-      },
-      202: {
-        type: 'web',
-        link: 'https://www.ruangguru.com/blog/matematika-peminatan-sma'
-      },
-      6: {
-        type: 'web',
-        link: 'https://www.ruangguru.com/konseling-jurusan-kuliah'
-      },
-      203: {
-        type: 'video',
-        link: 'https://www.youtube.com/results?search_query=biologi+kimia+intensif+UTBK'
-      },
-      
-      // SMP Courses
-      2: {
-        type: 'web',
-        link: 'https://www.ruangguru.com/brain-academy-center-smp'
-      },
-      301: {
-        type: 'video',
-        link: 'https://www.youtube.com/results?search_query=OSN+SMP+persiapan+olimpiade'
-      },
-      302: {
-        type: 'video',
-        link: 'https://www.youtube.com/results?search_query=matematika+IPA+SMP+kelas+7+8+9'
-      },
-      303: {
-        type: 'video',
-        link: 'https://www.youtube.com/results?search_query=bahasa+inggris+SMP+dasar+menengah'
-      },
+      1: { link: 'https://www.youtube.com/results?search_query=SNBT+2025+video+pembelajaran+lengkap' },
+      5: { link: 'https://www.ruangguru.com/blog/persiapan-ujian-mandiri-ptn' },
+      101: { link: 'https://www.ruangguru.com/tryout/utbk-snbt' },
+      102: { link: 'https://www.youtube.com/results?search_query=penalaran+umum+kuantitatif+UTBK' },
+      103: { link: 'https://www.youtube.com/results?search_query=strategi+lolos+PTN+2026' },
+      3: { link: 'https://www.youtube.com/results?search_query=live+teaching+SMA+interaktif' },
+      201: { link: 'https://www.youtube.com/results?search_query=fisika+kimia+SMA+lanjutan+materi' },
+      202: { link: 'https://www.ruangguru.com/blog/matematika-peminatan-sma' },
+      6: { link: 'https://www.ruangguru.com/konseling-jurusan-kuliah' },
+      203: { link: 'https://www.youtube.com/results?search_query=biologi+kimia+intensif+UTBK' },
+      2: { link: 'https://www.ruangguru.com/brain-academy-center-smp' },
+      301: { link: 'https://www.youtube.com/results?search_query=OSN+SMP+persiapan+olimpiade' },
+      302: { link: 'https://www.youtube.com/results?search_query=matematika+IPA+SMP+kelas+7+8+9' },
+      303: { link: 'https://www.youtube.com/results?search_query=bahasa+inggris+SMP+dasar+menengah' },
     };
     
-    // Jika ada link spesifik untuk ID ini, gunakan
     if (specificLinks[courseId]) {
       return specificLinks[courseId].link;
     }
     
-    // ========== FALLBACK: Generate link berdasarkan nama ==========
-    
-    // Keywords untuk video YouTube
     if (courseType.includes('Video') || courseName.toLowerCase().includes('video')) {
-      if (courseName.toLowerCase().includes('snbt') || courseName.toLowerCase().includes('utbk')) {
-        return 'https://www.youtube.com/results?search_query=UTBK+SNBT+video+pembelajaran';
-      }
-      if (courseName.toLowerCase().includes('fisika')) {
-        return 'https://www.youtube.com/results?search_query=fisika+SMA+materi+lengkap';
-      }
-      if (courseName.toLowerCase().includes('kimia')) {
-        return 'https://www.youtube.com/results?search_query=kimia+SMA+materi+lengkap';
-      }
-      if (courseName.toLowerCase().includes('biologi')) {
-        return 'https://www.youtube.com/results?search_query=biologi+SMA+materi+lengkap';
-      }
-      if (courseName.toLowerCase().includes('matematika')) {
-        return 'https://www.youtube.com/results?search_query=matematika+pembahasan+soal';
-      }
-      if (courseName.toLowerCase().includes('inggris')) {
-        return 'https://www.youtube.com/results?search_query=belajar+bahasa+inggris';
-      }
       return 'https://www.youtube.com/results?search_query=belajar+online';
     }
     
-    // Keywords untuk Tryout
-    if (courseType.includes('Simulasi') || courseType.includes('Tryout') || 
-        courseName.toLowerCase().includes('tryout')) {
-      return 'https://www.ruangguru.com/tryout/utbk-snbt';
-    }
-    
-    // Keywords untuk Live Teaching
-    if (courseType.includes('Live') || courseName.toLowerCase().includes('live')) {
-      return 'https://www.youtube.com/results?search_query=live+teaching+interaktif';
-    }
-    
-    // Keywords untuk Olimpiade
-    if (courseName.toLowerCase().includes('olimpiade') || courseName.toLowerCase().includes('osn')) {
-      return 'https://pusatprestasinasional.kemdikbud.go.id/';
-    }
-    
-    // Keywords untuk Konseling
-    if (courseType.includes('Konseling') || courseName.toLowerCase().includes('konseling')) {
-      return 'https://www.ruangguru.com/konseling';
-    }
-    
-    // Default: Ruangguru belajar
     return 'https://www.ruangguru.com/belajar';
   };
 
+  // 👇 Handler untuk klaim sertifikat
+  const handleClaimCertificate = (course) => {
+    const userStr = localStorage.getItem('learnify_user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      
+      // Cek apakah sertifikat sudah ada
+      const existingCertificate = user.certificates?.find(c => c.courseId === course.id);
+      
+      if (!existingCertificate) {
+        // Buat sertifikat baru
+        const today = new Date();
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const dateStr = `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+        
+        const newCertificate = {
+          id: Date.now(),
+          courseId: course.id,
+          title: course.name,
+          date: dateStr,
+          score: Math.floor(Math.random() * 31) + 70, // Skor random 70-100
+          type: course.type,
+          instructor: course.instructor,
+          level: course.level
+        };
+        
+        user.certificates = [...(user.certificates || []), newCertificate];
+        localStorage.setItem('learnify_user', JSON.stringify(user));
+        setUser(user);
+      }
+    }
+    
+    // Arahkan ke halaman sertifikat
+    navigate('/certificates');
+  };
+
   const handleContinueLearning = (course) => {
+    // Cek apakah progres sudah 100%
+    if (course.progress >= 100) {
+      handleClaimCertificate(course);
+      return;
+    }
+    
     const link = getCourseLink(course);
     
-    // Update progress (simulasi)
+    // Update progress
     const userStr = localStorage.getItem('learnify_user');
     if (userStr) {
       const user = JSON.parse(userStr);
       const courseIndex = user.myCourses?.findIndex(c => c.id === course.id);
       
       if (courseIndex !== -1) {
-        // Tambah progress 20% setiap kali lanjutkan
         const newProgress = Math.min((user.myCourses[courseIndex].progress || 0) + 20, 100);
         user.myCourses[courseIndex].progress = newProgress;
         localStorage.setItem('learnify_user', JSON.stringify(user));
@@ -179,7 +128,6 @@ const Dashboard = () => {
       }
     }
     
-    // Buka link di tab baru
     window.open(link, '_blank');
   };
 
@@ -219,7 +167,6 @@ const Dashboard = () => {
 
   return (
     <div className="animate-fade-in" style={{ paddingBottom: '80px' }}>
-      {/* Header */}
       <div style={{ background: 'var(--gradient-hero)', padding: '40px 0 100px 0', color: 'white' }}>
         <div className="container">
           <div>
@@ -233,7 +180,6 @@ const Dashboard = () => {
       </div>
 
       <div className="container overlap-container" style={{ marginTop: '-60px' }}>
-        {/* Stat Cards */}
         <div className="grid-4" style={{ marginBottom: '40px' }}>
           <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '24px' }}>
             <div style={{ padding: '16px', background: 'rgba(0, 167, 211, 0.1)', borderRadius: '16px', color: 'var(--rg-blue-light)' }}><BookOpen size={28} /></div>
@@ -285,45 +231,66 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="grid-2">
-            {myCourses.map(course => (
-              <div key={course.id} className="card" style={{ display: 'flex', flexDirection: 'column', background: 'white' }}>
-                <div style={{ padding: '24px', flex: 1 }}>
-                  <span className="badge" style={{ 
-                    marginBottom: '12px', 
-                    background: course.type?.includes('Video') ? '#6A5ACD' : 
-                               course.type?.includes('Tryout') ? '#FF4500' :
-                               course.type?.includes('Live') ? '#1E90FF' : 'var(--rg-teal)', 
-                    color: 'white',
-                    padding: '4px 12px',
-                    borderRadius: '100px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    display: 'inline-block'
-                  }}>
-                    {course.level?.toUpperCase() || 'SMA'}
-                  </span>
-                  <h4 style={{ marginBottom: '8px', fontSize: '18px', lineHeight: 1.4, color: 'var(--text-dark)' }}>{course.name}</h4>
-                  <p style={{ color: 'var(--text-gray)', fontSize: '14px', marginBottom: '24px' }}>Master Teacher: {course.instructor}</p>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-dark)', marginBottom: '8px', fontWeight: 700 }}>
-                    <span>Progres Belajar</span>
-                    <span style={{ color: 'var(--rg-blue-light)' }}>{course.progress || 0}%</span>
+            {myCourses.map(course => {
+              const isCompleted = course.progress >= 100;
+              return (
+                <div key={course.id} className="card" style={{ display: 'flex', flexDirection: 'column', background: 'white' }}>
+                  <div style={{ padding: '24px', flex: 1 }}>
+                    <span className="badge" style={{ 
+                      marginBottom: '12px', 
+                      background: isCompleted ? '#10B981' : 
+                        (course.type?.includes('Video') ? '#6A5ACD' : 
+                         course.type?.includes('Tryout') ? '#FF4500' :
+                         course.type?.includes('Live') ? '#1E90FF' : 'var(--rg-teal)'),
+                      color: 'white',
+                      padding: '4px 12px',
+                      borderRadius: '100px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      display: 'inline-block'
+                    }}>
+                      {isCompleted ? '✅ SELESAI' : course.level?.toUpperCase() || 'SMA'}
+                    </span>
+                    <h4 style={{ marginBottom: '8px', fontSize: '18px', lineHeight: 1.4, color: 'var(--text-dark)' }}>{course.name}</h4>
+                    <p style={{ color: 'var(--text-gray)', fontSize: '14px', marginBottom: '24px' }}>Master Teacher: {course.instructor}</p>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-dark)', marginBottom: '8px', fontWeight: 700 }}>
+                      <span>Progres Belajar</span>
+                      <span style={{ color: isCompleted ? '#10B981' : 'var(--rg-blue-light)' }}>{course.progress || 0}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: 'var(--border-color)', borderRadius: '100px', overflow: 'hidden' }}>
+                      <div style={{ 
+                        width: `${course.progress || 0}%`, 
+                        height: '100%', 
+                        background: isCompleted ? '#10B981' : 'var(--rg-teal)', 
+                        borderRadius: '100px' 
+                      }}></div>
+                    </div>
                   </div>
-                  <div style={{ width: '100%', height: '8px', background: 'var(--border-color)', borderRadius: '100px', overflow: 'hidden' }}>
-                    <div style={{ width: `${course.progress || 0}%`, height: '100%', background: 'var(--rg-teal)', borderRadius: '100px' }}></div>
+                  <div style={{ padding: '16px 24px', background: '#F8FAFC', borderTop: '1px solid var(--border-color)' }}>
+                    <button 
+                      onClick={() => handleContinueLearning(course)}
+                      className="btn btn-primary btn-interactive" 
+                      style={{ 
+                        width: '100%', 
+                        padding: '10px', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: '8px',
+                        background: isCompleted ? '#10B981' : 'var(--rg-teal)'
+                      }}
+                    >
+                      {isCompleted ? (
+                        <>Klaim Sertifikat <Award size={14} /></>
+                      ) : (
+                        <>Lanjutkan <ExternalLink size={14} /></>
+                      )}
+                    </button>
                   </div>
                 </div>
-                <div style={{ padding: '16px 24px', background: '#F8FAFC', borderTop: '1px solid var(--border-color)' }}>
-                  <button 
-                    onClick={() => handleContinueLearning(course)}
-                    className="btn btn-primary btn-interactive" 
-                    style={{ width: '100%', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                  >
-                    Lanjutkan <ExternalLink size={14} />
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

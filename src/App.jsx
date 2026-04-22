@@ -17,8 +17,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
-import Settings from './pages/Settings';        // 👈 Tambahkan import Settings
-import Certificates from './pages/Certificates';  // 👈 Tambahkan import Certificates
+import Settings from './pages/Settings';
+import Certificates from './pages/Certificates';
+import CertificatePreview from './pages/CertificatePreview';  // 👈 Tambahkan import CertificatePreview
 
 function App() {
   return (
@@ -41,8 +42,9 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<Settings />} />           {/* 👈 Route Settings */}
-            <Route path="/certificates" element={<Certificates />} />   {/* 👈 Route Certificates */}
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/certificates" element={<Certificates />} />
+            <Route path="/certificate/:id" element={<CertificatePreview />} />  {/* 👈 Route CertificatePreview */}
           </Routes>
         </main>
         <Footer />
