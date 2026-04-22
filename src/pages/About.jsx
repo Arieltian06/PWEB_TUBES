@@ -1,3 +1,5 @@
+import teamImage from '/images/kami.jpeg'; // 👈 Import gambar di sini
+
 const About = () => {
   return (
     <div className="animate-fade-in">
@@ -14,9 +16,9 @@ const About = () => {
       <div className="container section">
         <div className="grid-2" style={{ alignItems: 'center', gap: '48px', marginBottom: '80px' }}>
           <div>
-            {/* 👇 Path diperbaiki: hapus "public/" */}
+            {/* 👇 Gunakan variable import */}
             <img 
-              src="/images/kami.jpeg" 
+              src={teamImage} 
               alt="Tim Learnify" 
               style={{ width: '100%', borderRadius: '24px', boxShadow: 'var(--shadow-lg)' }}
               onError={(e) => { 
@@ -58,4 +60,4 @@ const About = () => {
   );
 };
 
- export default About;
+export default About;
