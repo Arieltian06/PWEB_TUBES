@@ -1,26 +1,53 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Pricing = () => {
-  const [currentLevel, setCurrentLevel] = useState('sma'); // Default to SMA
+  const [currentLevel, setCurrentLevel] = useState('sma');
   const navigate = useNavigate();
+  const [discountPercentage, setDiscountPercentage] = useState(0);
 
-  // Cek status login dari localStorage
+  useEffect(() => {
+    const savedDiscount = localStorage.getItem('learnify_discount');
+    if (savedDiscount) {
+      setDiscountPercentage(parseInt(savedDiscount));
+    }
+  }, []);
+
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
-  // Fungsi untuk handle klik langganan
+  // 👇 Fungsi untuk menghitung harga setelah diskon
+  const getDiscountedPrice = (originalPrice) => {
+    if (discountPercentage > 0) {
+      return Math.round(originalPrice * (1 - discountPercentage / 100));
+    }
+    return originalPrice;
+  };
+
+  // 👇 Format harga ke Rupiah
+  const formatRupiah = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   const handleSubscribe = (planName, planPrice) => {
+    // 👇 Gunakan harga setelah diskon
+    const finalPrice = getDiscountedPrice(planPrice);
+    
     if (isLoggedIn) {
-      // Jika sudah login, arahkan ke halaman pembayaran dengan data paket
       navigate('/payment', { 
         state: { 
           packageName: planName, 
-          packagePrice: planPrice 
+          packagePrice: finalPrice,
+          originalPrice: planPrice,
+          discountPercentage: discountPercentage
         } 
       });
     } else {
-      // Jika belum login, arahkan ke halaman register
       navigate('/register');
     }
   };
@@ -29,7 +56,6 @@ const Pricing = () => {
     smp: [
       {
         name: 'ruangbelajar SMP',
-        price: 'Rp 199.000',
         priceValue: 199000,
         period: '/bulan',
         desc: 'Penguatan konsep dasar',
@@ -40,7 +66,6 @@ const Pricing = () => {
       },
       {
         name: 'BA Online SMP',
-        price: 'Rp 399.000',
         priceValue: 399000,
         period: '/bulan',
         desc: 'Bimbel interaktif dengan Master Teacher',
@@ -51,7 +76,6 @@ const Pricing = () => {
       },
       {
         name: 'BA Center SMP',
-        price: 'Rp 599.000',
         priceValue: 599000,
         period: '/bulan',
         desc: 'Fasilitas tatap muka di cabang',
@@ -64,7 +88,6 @@ const Pricing = () => {
     sma: [
       {
         name: 'ruangbelajar SMA',
-        price: 'Rp 249.000',
         priceValue: 249000,
         period: '/bulan',
         desc: 'Cocok untuk belajar materi sulit di rumah',
@@ -75,7 +98,6 @@ const Pricing = () => {
       },
       {
         name: 'BA Online SMA',
-        price: 'Rp 499.000',
         priceValue: 499000,
         period: '/bulan',
         desc: 'Bimbel interaktif untuk IPA/IPS/Bahasa',
@@ -86,7 +108,6 @@ const Pricing = () => {
       },
       {
         name: 'BA Center SMA',
-        price: 'Rp 699.000',
         priceValue: 699000,
         period: '/bulan',
         desc: 'Fasilitas tatap muka di cabang terdekat',
@@ -99,7 +120,6 @@ const Pricing = () => {
     utbk: [
       {
         name: 'Intensif UTBK',
-        price: 'Rp 299.000',
         priceValue: 299000,
         period: '/bulan',
         desc: 'Persiapan SNBT/Mandiri online mandiri',
@@ -110,7 +130,6 @@ const Pricing = () => {
       },
       {
         name: 'BA Online SNBT',
-        price: 'Rp 599.000',
         priceValue: 599000,
         period: '/bulan',
         desc: 'Bimbel live fokus tembus PTN Favorit',
@@ -121,7 +140,6 @@ const Pricing = () => {
       },
       {
         name: 'Karantina PTN',
-        price: 'Rp 899.000',
         priceValue: 899000,
         period: '/bulan',
         desc: 'Karantina tatap muka super intensif',
@@ -146,9 +164,12 @@ const Pricing = () => {
       <div style={{ background: 'var(--gradient-hero)', padding: '60px 0', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>
         <div className="container">
           <h1 style={{ fontSize: '32px', marginBottom: '16px', color: 'white' }}>Pilih Program Belajarmu</h1>
-          <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.9)', marginBottom: '32px' }}>Nikmati diskon spesial untuk langganan pertamamu.</p>
+          <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.9)', marginBottom: '32px' }}>
+            {discountPercentage > 0 
+              ? `🎉 Diskon ${discountPercentage}% aktif! Nikmati harga spesial sekarang!` 
+              : 'Nikmati diskon spesial untuk langganan pertamamu.'}
+          </p>
           
-          {/* Level Selection Tabs - TANPA SD */}
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', overflowX: 'auto', paddingBottom: '8px' }} className="hide-scrollbar">
             {['SMP', 'SMA', 'UTBK'].map(tab => {
               const tabKey = tab.toLowerCase();
@@ -181,59 +202,94 @@ const Pricing = () => {
       <div className="container section">
         <h2 style={{ textAlign: 'center', marginBottom: '40px', fontSize: '24px', color: 'var(--text-dark)' }}>{levelTitles[currentLevel]}</h2>
         <div className="grid-3" style={{ alignItems: 'flex-start' }}>
-          {plans.map((plan, i) => (
-            <div key={i} className="card" style={{ 
-              position: 'relative',
-              boxShadow: plan.isPopular ? 'var(--shadow-lg)' : 'var(--shadow-sm)',
-              transform: plan.isPopular ? 'translateY(-8px)' : 'none',
-              border: plan.isPopular ? `2px solid ${plan.headerBg}` : '1px solid var(--border-color)',
-              transition: 'all 0.3s ease',
-              overflow: 'hidden'
-            }}>
-              {plan.isPopular && (
-                <div style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--rg-orange)', color: 'white', padding: '6px 16px', borderRadius: '100px', fontSize: '12px', fontWeight: 800, zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
-                  PILIHAN FAVORIT
-                </div>
-              )}
-              
-              <div style={{ height: '160px', position: 'relative' }}>
-                <img src={plan.image} alt={plan.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 20%, ${plan.headerBg} 100%)` }}></div>
-                <div style={{ position: 'absolute', bottom: '20px', left: '24px', right: '24px', color: 'white' }}>
-                  <h3 style={{ fontSize: '24px', marginBottom: '4px', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{plan.name}</h3>
-                  <p style={{ fontSize: '13px', opacity: 0.9, textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>{plan.desc}</p>
-                </div>
-              </div>
-              
-              <div style={{ padding: '32px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', marginBottom: '32px' }}>
-                  <span style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-dark)' }}>{plan.price}</span>
-                  <span style={{ fontWeight: 600, color: 'var(--text-gray)', marginLeft: '4px' }}>{plan.period}</span>
+          {plans.map((plan, i) => {
+            const discountedPrice = getDiscountedPrice(plan.priceValue);
+            const hasDiscount = discountPercentage > 0;
+            
+            return (
+              <div key={i} className="card" style={{ 
+                position: 'relative',
+                boxShadow: plan.isPopular ? 'var(--shadow-lg)' : 'var(--shadow-sm)',
+                transform: plan.isPopular ? 'translateY(-8px)' : 'none',
+                border: plan.isPopular ? `2px solid ${plan.headerBg}` : '1px solid var(--border-color)',
+                transition: 'all 0.3s ease',
+                overflow: 'hidden'
+              }}>
+                {plan.isPopular && (
+                  <div style={{ position: 'absolute', top: '16px', right: '16px', background: 'var(--rg-orange)', color: 'white', padding: '6px 16px', borderRadius: '100px', fontSize: '12px', fontWeight: 800, zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                    PILIHAN FAVORIT
+                  </div>
+                )}
+                
+                <div style={{ height: '160px', position: 'relative' }}>
+                  <img src={plan.image} alt={plan.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 20%, ${plan.headerBg} 100%)` }}></div>
+                  <div style={{ position: 'absolute', bottom: '20px', left: '24px', right: '24px', color: 'white' }}>
+                    <h3 style={{ fontSize: '24px', marginBottom: '4px', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{plan.name}</h3>
+                    <p style={{ fontSize: '13px', opacity: 0.9, textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>{plan.desc}</p>
+                  </div>
                 </div>
                 
-                <button 
-                  onClick={() => handleSubscribe(plan.name, plan.priceValue)}
-                  className={`btn ${plan.isPopular ? "btn-primary" : "btn-outline"} btn-interactive`} 
-                  style={{ width: '100%', marginBottom: '32px', padding: '14px', display: 'block', textAlign: 'center' }}
-                >
-                  Langganan Sekarang
-                </button>
+                <div style={{ padding: '32px 24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', marginBottom: '32px' }}>
+                    {hasDiscount ? (
+                      <>
+                        <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-gray)', textDecoration: 'line-through', marginRight: '8px' }}>
+                          {formatRupiah(plan.priceValue)}
+                        </span>
+                        <span style={{ fontSize: '32px', fontWeight: 900, color: '#F59E0B' }}>
+                          {formatRupiah(discountedPrice)}
+                        </span>
+                      </>
+                    ) : (
+                      <span style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-dark)' }}>
+                        {formatRupiah(plan.priceValue)}
+                      </span>
+                    )}
+                    <span style={{ fontWeight: 600, color: 'var(--text-gray)', marginLeft: '4px' }}>{plan.period}</span>
+                  </div>
+                  
+                  {hasDiscount && (
+                    <div style={{ 
+                      textAlign: 'center', 
+                      marginTop: '-16px', 
+                      marginBottom: '16px',
+                      background: '#FEF3C7',
+                      padding: '4px 12px',
+                      borderRadius: '100px',
+                      display: 'inline-block',
+                      width: 'auto',
+                      margin: '-16px auto 16px'
+                    }}>
+                      <span style={{ fontSize: '12px', color: '#F59E0B', fontWeight: 700 }}>
+                        Hemat {formatRupiah(plan.priceValue - discountedPrice)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <button 
+                    onClick={() => handleSubscribe(plan.name, plan.priceValue)}
+                    className={`btn ${plan.isPopular ? "btn-primary" : "btn-outline"} btn-interactive`} 
+                    style={{ width: '100%', marginBottom: '32px', padding: '14px', display: 'block', textAlign: 'center' }}
+                  >
+                    Langganan Sekarang
+                  </button>
 
-                <ul style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {plan.features.map((f, idx) => (
-                    <li key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', fontSize: '14px', color: 'var(--text-gray)', fontWeight: 600 }}>
-                      <Check size={18} color="var(--rg-teal)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
+                  <ul style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {plan.features.map((f, idx) => (
+                      <li key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', fontSize: '14px', color: 'var(--text-gray)', fontWeight: 600 }}>
+                        <Check size={18} color="var(--rg-teal)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* CSS untuk hide scrollbar */}
       <style>{`
         .hide-scrollbar {
           -ms-overflow-style: none;

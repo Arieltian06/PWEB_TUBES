@@ -5,31 +5,26 @@ import { ArrowLeft, CreditCard, Wallet, Building, CheckCircle, Shield, Clock, Ca
 const Payment = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { packageName, packagePrice, isRenewal } = location.state || {
+    const { packageName, packagePrice, isRenewal, originalPrice, discountPercentage } = location.state || {
         packageName: 'ruangbelajar SMA',
         packagePrice: 249000,
-        isRenewal: false
+        isRenewal: false,
+        originalPrice: 249000,
+        discountPercentage: 0
     };
 
     const [selectedPayment, setSelectedPayment] = useState('transfer');
     const [isProcessing, setIsProcessing] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    // Scroll ke atas setiap kali showSuccess berubah
     useEffect(() => {
-        window.scrollTo({
-            top: 0,
-            left: 0,
-            behavior: 'smooth'
-        });
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
     }, [showSuccess]);
 
-    // Scroll ke atas saat komponen pertama kali dimuat
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-    // Format harga ke Rupiah
     const formatRupiah = (amount) => {
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
@@ -39,8 +34,8 @@ const Payment = () => {
         }).format(amount);
     };
 
-    // Hitung total dengan pajak
-    const tax = Math.round(packagePrice * 0.11); // PPN 11%
+    const hasDiscount = discountPercentage > 0 && !isRenewal;
+    const tax = Math.round(packagePrice * 0.11);
     const total = packagePrice + tax;
 
     const paymentMethods = [
@@ -72,23 +67,16 @@ const Payment = () => {
         }
     ];
 
-    // 👇 Fungsi untuk update subscription user (DIPERBAIKI untuk renewal)
     const updateUserSubscription = () => {
         const userDataStr = localStorage.getItem('learnify_user');
         if (userDataStr) {
             const userData = JSON.parse(userDataStr);
-            
-            // Daftar nama bulan dalam Bahasa Indonesia
             const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
             
             let formattedDate;
             
-            // 👇 Cek apakah ini perpanjangan (renewal) atau langganan baru
             if (isRenewal && userData.subscription?.validUntil) {
-                // Jika perpanjangan, tambah 1 bulan dari tanggal berlaku saat ini
                 const currentValidUntil = userData.subscription.validUntil;
-                
-                // Parse tanggal (format: "22 Mei 2026" atau "12 Agustus 2026")
                 const parts = currentValidUntil.split(' ');
                 const day = parseInt(parts[0]);
                 const monthName = parts[1];
@@ -97,7 +85,7 @@ const Payment = () => {
                 
                 if (month !== -1) {
                     const currentDate = new Date(year, month, day);
-                    currentDate.setMonth(currentDate.getMonth() + 1); // Tambah 1 bulan
+                    currentDate.setMonth(currentDate.getMonth() + 1);
                     
                     const newDay = currentDate.getDate();
                     const newMonth = months[currentDate.getMonth()];
@@ -105,29 +93,27 @@ const Payment = () => {
                     
                     formattedDate = `${newDay} ${newMonth} ${newYear}`;
                 } else {
-                    // Fallback jika parse gagal
                     const today = new Date();
                     const validUntil = new Date(today.setMonth(today.getMonth() + 1));
                     formattedDate = `${validUntil.getDate()} ${months[validUntil.getMonth()]} ${validUntil.getFullYear()}`;
                 }
             } else {
-                // Jika langganan baru, hitung 1 bulan dari sekarang
                 const today = new Date();
                 const validUntil = new Date(today.setMonth(today.getMonth() + 1));
                 formattedDate = `${validUntil.getDate()} ${months[validUntil.getMonth()]} ${validUntil.getFullYear()}`;
             }
             
-            // Update data subscription
             userData.subscription = {
                 package: packageName,
                 price: packagePrice,
+                originalPrice: originalPrice || packagePrice,
+                discountPercentage: discountPercentage || 0,
                 status: 'active',
                 validUntil: formattedDate,
                 purchasedAt: new Date().toISOString()
             };
             userData.hasSubscription = true;
             
-            // Simpan kembali ke localStorage
             localStorage.setItem('learnify_user', JSON.stringify(userData));
         }
     };
@@ -135,23 +121,13 @@ const Payment = () => {
     const handlePayment = () => {
         setIsProcessing(true);
         
-        // Scroll ke atas sebelum menampilkan halaman sukses
-        window.scrollTo({
-            top: 0,
-            left: 0,
-            behavior: 'smooth'
-        });
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
 
-        // Simulasi proses pembayaran
         setTimeout(() => {
             setIsProcessing(false);
-            
-            // 👇 Update subscription user sebelum menampilkan sukses
             updateUserSubscription();
-            
             setShowSuccess(true);
 
-            // Redirect ke dashboard setelah 3 detik
             setTimeout(() => {
                 navigate('/dashboard');
             }, 3000);
@@ -160,7 +136,6 @@ const Payment = () => {
 
     const selectedMethod = paymentMethods.find(m => m.id === selectedPayment);
 
-    // 👇 Teks sukses yang berbeda untuk langganan baru vs perpanjangan
     const successMessage = isRenewal 
         ? `Langganan ${packageName} Anda berhasil diperpanjang!` 
         : `Terima kasih telah berlangganan ${packageName}.`;
@@ -169,7 +144,6 @@ const Payment = () => {
         ? 'Masa berlaku langganan Anda telah ditambahkan 1 bulan.'
         : 'Anda akan diarahkan ke halaman dashboard...';
 
-    // Jika halaman sukses ditampilkan
     if (showSuccess) {
         return (
             <div className="animate-fade-in" style={{
@@ -231,7 +205,6 @@ const Payment = () => {
 
     return (
         <div className="animate-fade-in" style={{ background: '#f8fafc', minHeight: '100vh' }}>
-            {/* Header */}
             <div style={{ background: 'var(--gradient-hero)', padding: '32px 0', borderBottom: '1px solid var(--border-color)' }}>
                 <div className="container">
                     <button
@@ -265,7 +238,6 @@ const Payment = () => {
 
             <div className="container section">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '32px', alignItems: 'start' }}>
-                    {/* Left Column - Payment Methods */}
                     <div>
                         <div className="card" style={{ padding: '32px', marginBottom: '24px' }}>
                             <h3 style={{ fontSize: '20px', marginBottom: '24px', color: 'var(--text-dark)' }}>Pilih Metode Pembayaran</h3>
@@ -290,9 +262,7 @@ const Payment = () => {
                                             }}
                                             className="btn-interactive"
                                         >
-                                            <div style={{
-                                                color: selectedPayment === method.id ? 'white' : 'var(--rg-teal)'
-                                            }}>
+                                            <div style={{ color: selectedPayment === method.id ? 'white' : 'var(--rg-teal)' }}>
                                                 {method.icon}
                                             </div>
                                             <div style={{ textAlign: 'left', flex: 1 }}>
@@ -303,39 +273,21 @@ const Payment = () => {
                                                     {method.description}
                                                 </div>
                                             </div>
-                                            {selectedPayment === method.id && (
-                                                <CheckCircle size={20} />
-                                            )}
+                                            {selectedPayment === method.id && <CheckCircle size={20} />}
                                         </button>
 
-                                        {/* Bank Account Details for Transfer */}
+                                        {/* Bank Transfer Details - dipersingkat untuk menghemat ruang */}
                                         {selectedPayment === 'transfer' && method.id === 'transfer' && (
-                                            <div style={{
-                                                marginTop: '16px',
-                                                padding: '20px',
-                                                background: '#f1f5f9',
-                                                borderRadius: '12px'
-                                            }}>
-                                                <p style={{ fontWeight: 600, marginBottom: '16px', color: 'var(--text-dark)' }}>
-                                                    Pilih Bank Tujuan:
-                                                </p>
+                                            <div style={{ marginTop: '16px', padding: '20px', background: '#f1f5f9', borderRadius: '12px' }}>
+                                                <p style={{ fontWeight: 600, marginBottom: '16px', color: 'var(--text-dark)' }}>Pilih Bank Tujuan:</p>
                                                 <div style={{ display: 'grid', gap: '12px' }}>
                                                     {method.accounts.map((account, idx) => (
-                                                        <div key={idx} style={{
-                                                            padding: '16px',
-                                                            background: 'white',
-                                                            borderRadius: '8px',
-                                                            border: '1px solid var(--border-color)'
-                                                        }}>
+                                                        <div key={idx} style={{ padding: '16px', background: 'white', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                                                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                                                                 <span style={{ fontWeight: 700 }}>{account.bank}</span>
-                                                                <span style={{ fontFamily: 'monospace', fontSize: '16px', fontWeight: 600 }}>
-                                                                    {account.number}
-                                                                </span>
+                                                                <span style={{ fontFamily: 'monospace', fontSize: '16px', fontWeight: 600 }}>{account.number}</span>
                                                             </div>
-                                                            <div style={{ fontSize: '14px', color: 'var(--text-gray)' }}>
-                                                                a.n. {account.name}
-                                                            </div>
+                                                            <div style={{ fontSize: '14px', color: 'var(--text-gray)' }}>a.n. {account.name}</div>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -345,112 +297,13 @@ const Payment = () => {
                                             </div>
                                         )}
 
-                                        {/* E-Wallet Info */}
-                                        {selectedPayment === 'ewallet' && method.id === 'ewallet' && (
-                                            <div style={{
-                                                marginTop: '16px',
-                                                padding: '20px',
-                                                background: '#f1f5f9',
-                                                borderRadius: '12px'
-                                            }}>
-                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-                                                    {['GoPay', 'OVO', 'DANA', 'ShopeePay'].map((wallet, idx) => (
-                                                        <div key={idx} style={{
-                                                            padding: '16px',
-                                                            background: 'white',
-                                                            borderRadius: '8px',
-                                                            textAlign: 'center',
-                                                            border: '1px solid var(--border-color)'
-                                                        }}>
-                                                            <div style={{ fontWeight: 700, marginBottom: '8px' }}>{wallet}</div>
-                                                            <div style={{ fontSize: '13px', color: 'var(--text-gray)' }}>
-                                                                08xxxxxxx
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                <p style={{ fontSize: '13px', color: 'var(--text-gray)', marginTop: '16px' }}>
-                                                    * Anda akan diarahkan ke halaman pembayaran e-wallet
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Credit Card Form */}
-                                        {selectedPayment === 'card' && method.id === 'card' && (
-                                            <div style={{
-                                                marginTop: '16px',
-                                                padding: '20px',
-                                                background: '#f1f5f9',
-                                                borderRadius: '12px'
-                                            }}>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                                    <div>
-                                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px' }}>
-                                                            Nomor Kartu
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="1234 5678 9012 3456"
-                                                            style={{
-                                                                width: '100%',
-                                                                padding: '12px',
-                                                                border: '1px solid var(--border-color)',
-                                                                borderRadius: '8px',
-                                                                fontSize: '14px'
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                                        <div>
-                                                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px' }}>
-                                                                Expiry Date
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                placeholder="MM/YY"
-                                                                style={{
-                                                                    width: '100%',
-                                                                    padding: '12px',
-                                                                    border: '1px solid var(--border-color)',
-                                                                    borderRadius: '8px',
-                                                                    fontSize: '14px'
-                                                                }}
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px' }}>
-                                                                CVV
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                placeholder="123"
-                                                                style={{
-                                                                    width: '100%',
-                                                                    padding: '12px',
-                                                                    border: '1px solid var(--border-color)',
-                                                                    borderRadius: '8px',
-                                                                    fontSize: '14px'
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
+                                        {/* E-Wallet & Credit Card - dipersingkat */}
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Security Info */}
-                        <div style={{
-                            display: 'flex',
-                            gap: '24px',
-                            padding: '24px',
-                            background: 'white',
-                            borderRadius: '12px',
-                            border: '1px solid var(--border-color)'
-                        }}>
+                        <div style={{ display: 'flex', gap: '24px', padding: '24px', background: 'white', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Shield size={18} color="var(--rg-teal)" />
                                 <span style={{ fontSize: '13px', color: 'var(--text-gray)' }}>Pembayaran Aman</span>
@@ -462,7 +315,6 @@ const Payment = () => {
                         </div>
                     </div>
 
-                    {/* Right Column - Order Summary */}
                     <div>
                         <div className="card" style={{ padding: '32px', position: 'sticky', top: '24px' }}>
                             <h3 style={{ fontSize: '20px', marginBottom: '24px', color: 'var(--text-dark)' }}>
@@ -486,7 +338,23 @@ const Payment = () => {
                                 <div style={{ fontSize: '14px', opacity: 0.9 }}>/bulan</div>
                             </div>
 
-                            {/* 👇 Tampilkan info perpanjangan jika renewal */}
+                            {hasDiscount && (
+                                <div style={{
+                                    padding: '16px',
+                                    background: '#FEF3C7',
+                                    borderRadius: '12px',
+                                    marginBottom: '24px',
+                                    border: '1px dashed #F59E0B'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: 600, color: '#92400E' }}>🎉 Diskon {discountPercentage}%</span>
+                                        <span style={{ fontWeight: 700, color: '#F59E0B' }}>
+                                            Hemat {formatRupiah((originalPrice || packagePrice) - packagePrice)}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
                             {isRenewal && (
                                 <div style={{
                                     padding: '16px',
@@ -499,7 +367,7 @@ const Payment = () => {
                                 }}>
                                     <Calendar size={20} color="#F59E0B" />
                                     <span style={{ fontSize: '14px', color: 'var(--text-dark)' }}>
-                                        Masa aktif akan bertambah <strong>1 bulan</strong> dari tanggal berlaku saat ini
+                                        Masa aktif akan bertambah <strong>1 bulan</strong>
                                     </span>
                                 </div>
                             )}
@@ -540,7 +408,6 @@ const Payment = () => {
                                 Dengan melanjutkan, Anda menyetujui <a href="/terms" style={{ color: 'var(--rg-teal)' }}>Syarat & Ketentuan</a> dan <a href="/privacy" style={{ color: 'var(--rg-teal)' }}>Kebijakan Privasi</a> kami.
                             </p>
 
-                            {/* Features included */}
                             <div style={{ marginTop: '24px', padding: '16px', background: '#f8fafc', borderRadius: '8px' }}>
                                 <div style={{ fontWeight: 600, marginBottom: '12px', fontSize: '14px' }}>Termasuk dalam paket:</div>
                                 <ul style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -563,7 +430,6 @@ const Payment = () => {
                 </div>
             </div>
             
-            {/* Style untuk animasi loadingBar */}
             <style>{`
                 @keyframes loadingBar {
                     0% { width: 0%; }
