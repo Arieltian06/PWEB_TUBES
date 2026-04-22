@@ -8,15 +8,16 @@ const Pricing = () => {
   const [discountPercentage, setDiscountPercentage] = useState(0);
 
   useEffect(() => {
-    const savedDiscount = localStorage.getItem('learnify_discount');
-    if (savedDiscount) {
-      setDiscountPercentage(parseInt(savedDiscount));
+    // Baca dari learnify_active_discount (sumber utama)
+    const activeDiscount = localStorage.getItem('learnify_active_discount');
+    if (activeDiscount) {
+      setDiscountPercentage(parseInt(activeDiscount));
     }
   }, []);
 
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
-  // 👇 Fungsi untuk menghitung harga setelah diskon
+  // Fungsi untuk menghitung harga setelah diskon
   const getDiscountedPrice = (originalPrice) => {
     if (discountPercentage > 0) {
       return Math.round(originalPrice * (1 - discountPercentage / 100));
@@ -24,7 +25,7 @@ const Pricing = () => {
     return originalPrice;
   };
 
-  // 👇 Format harga ke Rupiah
+  // Format harga ke Rupiah
   const formatRupiah = (amount) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -35,7 +36,7 @@ const Pricing = () => {
   };
 
   const handleSubscribe = (planName, planPrice) => {
-    // 👇 Gunakan harga setelah diskon
+    // Gunakan harga setelah diskon
     const finalPrice = getDiscountedPrice(planPrice);
     
     if (isLoggedIn) {
@@ -231,7 +232,7 @@ const Pricing = () => {
                 </div>
                 
                 <div style={{ padding: '32px 24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', marginBottom: '32px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
                     {hasDiscount ? (
                       <>
                         <span style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-gray)', textDecoration: 'line-through', marginRight: '8px' }}>
@@ -252,14 +253,14 @@ const Pricing = () => {
                   {hasDiscount && (
                     <div style={{ 
                       textAlign: 'center', 
-                      marginTop: '-16px', 
-                      marginBottom: '16px',
+                      marginBottom: '20px',
                       background: '#FEF3C7',
-                      padding: '4px 12px',
+                      padding: '6px 12px',
                       borderRadius: '100px',
                       display: 'inline-block',
                       width: 'auto',
-                      margin: '-16px auto 16px'
+                      margin: '0 auto 20px',
+                      width: 'fit-content'
                     }}>
                       <span style={{ fontSize: '12px', color: '#F59E0B', fontWeight: 700 }}>
                         Hemat {formatRupiah(plan.priceValue - discountedPrice)}

@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, CheckCircle } from 'lucide-react';
+import { BookOpen, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const Login = () => {
@@ -7,18 +7,17 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showMessage, setShowMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showError, setShowError] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Cek apakah ada pesan dari halaman Register
   useEffect(() => {
     if (location.state?.message) {
       setShowMessage(location.state.message);
-      // Pre-fill email jika ada
       if (location.state?.email) {
         setEmail(location.state.email);
       }
-      // Hapus state agar tidak muncul lagi saat refresh
       window.history.replaceState({}, document.title);
     }
   }, [location]);
@@ -26,40 +25,49 @@ const Login = () => {
   const handleLogin = (e) => {
     e.preventDefault();
     
-    if (email && password) {
-      setIsLoading(true);
+    if (!email || !password) {
+      setErrorMessage('Email dan password harus diisi!');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    setTimeout(() => {
+      // 👇 Ambil SEMUA user yang terdaftar
+      const allUsers = JSON.parse(localStorage.getItem('learnify_users') || '{}');
+      const user = allUsers[email];
       
-      // Simulasi proses login
-      setTimeout(() => {
-        // Ambil data user yang sudah terdaftar
-        const existingUserStr = localStorage.getItem('learnify_user');
-        let userData;
+      // 👇 VALIDASI: Cek apakah user ada dan password cocok
+      if (user && user.password === password) {
+        // ✅ Login berhasil!
         
-        if (existingUserStr) {
-          userData = JSON.parse(existingUserStr);
-          // Update data jika perlu (tapi jangan ubah subscription)
-        } else {
-          // Fallback: buat data user baru jika belum ada
-          userData = {
-            fullName: email.split('@')[0],
-            email: email,
-            grade: 'SMA Kelas 12',
-            hasSubscription: false,
-            subscription: null,
-            myCourses: []
-          };
-        }
+        // Simpan user yang sedang login (tanpa password)
+        const loggedInUser = {
+          fullName: user.fullName,
+          email: user.email,
+          grade: user.grade,
+          phone: user.phone || '',
+          hasSubscription: user.hasSubscription || false,
+          subscription: user.subscription || null,
+          myCourses: user.myCourses || [],
+          certificates: user.certificates || []
+        };
         
-        // 👇 Set isLoggedIn = true saat login
         localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('learnify_user', JSON.stringify(userData));
+        localStorage.setItem('learnify_user', JSON.stringify(loggedInUser));
         
         setIsLoading(false);
-        
-        // 👇 Arahkan ke BERANDA UTAMA (/) bukan dashboard
         navigate('/');
-      }, 1000);
-    }
+      } else {
+        // ❌ Login gagal
+        setIsLoading(false);
+        setErrorMessage('Email atau password salah!');
+        setShowError(true);
+        setTimeout(() => setShowError(false), 3000);
+      }
+    }, 1000);
   };
 
   return (
@@ -85,6 +93,27 @@ const Login = () => {
           <h2 style={{ fontSize: '28px', marginBottom: '8px', color: 'var(--text-dark)' }}>Masuk ke Akun</h2>
           <p style={{ color: 'var(--text-gray)', marginBottom: '32px', fontSize: '15px' }}>Selamat datang kembali! Silakan masukkan detail akunmu.</p>
 
+          {/* 👇 Error Popup */}
+          {showError && (
+            <div style={{
+              background: '#FEF2F2',
+              border: '1px solid #FCA5A5',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              animation: 'slideIn 0.3s ease'
+            }}>
+              <AlertCircle size={20} color="#DC2626" />
+              <span style={{ color: '#991B1B', fontWeight: 600, fontSize: '14px', flex: 1 }}>{errorMessage}</span>
+              <button onClick={() => setShowError(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#991B1B' }}>
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
           {/* 👇 Pesan sukses dari Register */}
           {showMessage && (
             <div style={{
@@ -104,13 +133,13 @@ const Login = () => {
 
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: 'var(--text-dark)' }}>Nomor HP atau Email</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: 'var(--text-dark)' }}>Email</label>
               <input 
-                type="text" 
+                type="email" 
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Contoh: 08123456789 atau nama@email.com"
+                placeholder="Contoh: nama@email.com"
                 style={{ width: '100%', padding: '14px 20px', borderRadius: '100px', border: '1px solid var(--border-color)', background: 'var(--bg-white)', fontSize: '15px' }}
               />
             </div>
@@ -148,6 +177,10 @@ const Login = () => {
       <style>{`
         @media (max-width: 900px) {
           .login-banner { display: none !important; }
+        }
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
         }
       `}</style>
     </div>

@@ -34,7 +34,11 @@ const Payment = () => {
         }).format(amount);
     };
 
-    const hasDiscount = discountPercentage > 0 && !isRenewal;
+    // Baca diskon langsung dari localStorage untuk memastikan sinkron
+    const activeDiscount = localStorage.getItem('learnify_active_discount');
+    const actualDiscountPercentage = activeDiscount ? parseInt(activeDiscount) : discountPercentage;
+    const hasDiscount = actualDiscountPercentage > 0 && !isRenewal;
+    
     const tax = Math.round(packagePrice * 0.11);
     const total = packagePrice + tax;
 
@@ -107,7 +111,7 @@ const Payment = () => {
                 package: packageName,
                 price: packagePrice,
                 originalPrice: originalPrice || packagePrice,
-                discountPercentage: discountPercentage || 0,
+                discountPercentage: actualDiscountPercentage || 0,
                 status: 'active',
                 validUntil: formattedDate,
                 purchasedAt: new Date().toISOString()
@@ -115,6 +119,13 @@ const Payment = () => {
             userData.hasSubscription = true;
             
             localStorage.setItem('learnify_user', JSON.stringify(userData));
+            
+            // Update juga di learnify_users
+            const allUsers = JSON.parse(localStorage.getItem('learnify_users') || '{}');
+            if (allUsers[userData.email]) {
+                allUsers[userData.email] = userData;
+                localStorage.setItem('learnify_users', JSON.stringify(allUsers));
+            }
         }
     };
 
@@ -276,7 +287,6 @@ const Payment = () => {
                                             {selectedPayment === method.id && <CheckCircle size={20} />}
                                         </button>
 
-                                        {/* Bank Transfer Details - dipersingkat untuk menghemat ruang */}
                                         {selectedPayment === 'transfer' && method.id === 'transfer' && (
                                             <div style={{ marginTop: '16px', padding: '20px', background: '#f1f5f9', borderRadius: '12px' }}>
                                                 <p style={{ fontWeight: 600, marginBottom: '16px', color: 'var(--text-dark)' }}>Pilih Bank Tujuan:</p>
@@ -296,8 +306,6 @@ const Payment = () => {
                                                 </p>
                                             </div>
                                         )}
-
-                                        {/* E-Wallet & Credit Card - dipersingkat */}
                                     </div>
                                 ))}
                             </div>
@@ -347,7 +355,7 @@ const Payment = () => {
                                     border: '1px dashed #F59E0B'
                                 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontWeight: 600, color: '#92400E' }}>🎉 Diskon {discountPercentage}%</span>
+                                        <span style={{ fontWeight: 600, color: '#92400E' }}>🎉 Diskon {actualDiscountPercentage}%</span>
                                         <span style={{ fontWeight: 700, color: '#F59E0B' }}>
                                             Hemat {formatRupiah((originalPrice || packagePrice) - packagePrice)}
                                         </span>

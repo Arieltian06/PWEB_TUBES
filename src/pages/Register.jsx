@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, AlertCircle, X } from 'lucide-react';
 import { useState } from 'react';
 
 const Register = () => {
@@ -8,40 +8,69 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [grade, setGrade] = useState('SMA Kelas 12');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showError, setShowError] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = (e) => {
     e.preventDefault();
     
-    if (fullName && email && password) {
-      setIsLoading(true);
-      
-      // Simulasi proses pendaftaran
-      setTimeout(() => {
-        // Simpan data user ke localStorage (BELUM login)
-        const userData = {
-          fullName,
-          email,
-          grade,
-          hasSubscription: false,  // 👈 Belum berlangganan
-          subscription: null,       // 👈 Belum ada paket
-          myCourses: []
-        };
-        
-        localStorage.setItem('learnify_user', JSON.stringify(userData));
-        // 👇 JANGAN set isLoggedIn = true di sini
-        
-        setIsLoading(false);
-        
-        // 👇 Arahkan ke halaman LOGIN (bukan dashboard)
-        navigate('/login', { 
-          state: { 
-            message: 'Pendaftaran berhasil! Silakan login dengan akun Anda.',
-            email: email 
-          } 
-        });
-      }, 1000);
+    if (!fullName || !email || !password) {
+      setErrorMessage('Semua field harus diisi!');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
     }
+    
+    if (password.length < 8) {
+      setErrorMessage('Password minimal 8 karakter!');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    setTimeout(() => {
+      // 👇 Ambil semua user yang sudah terdaftar
+      const allUsers = JSON.parse(localStorage.getItem('learnify_users') || '{}');
+      
+      // 👇 Cek apakah email sudah terdaftar
+      if (allUsers[email]) {
+        setIsLoading(false);
+        setErrorMessage('Email sudah terdaftar! Silakan gunakan email lain atau login.');
+        setShowError(true);
+        setTimeout(() => setShowError(false), 4000);
+        return;
+      }
+      
+      // 👇 Simpan user baru dengan password
+      const userData = {
+        fullName,
+        email,
+        password, // ⚠️ Untuk demo, di production HARUS di-hash!
+        grade,
+        phone: '',
+        hasSubscription: false,
+        subscription: null,
+        myCourses: [],
+        certificates: []
+      };
+      
+      // Simpan ke dalam daftar users
+      allUsers[email] = userData;
+      localStorage.setItem('learnify_users', JSON.stringify(allUsers));
+      
+      setIsLoading(false);
+      
+      // 👇 Arahkan ke halaman LOGIN
+      navigate('/login', { 
+        state: { 
+          message: 'Pendaftaran berhasil! Silakan login dengan akun Anda.',
+          email: email 
+        } 
+      });
+    }, 1000);
   };
 
   return (
@@ -66,6 +95,27 @@ const Register = () => {
         <div style={{ width: '100%', maxWidth: '400px', margin: '0 auto' }}>
           <h2 style={{ fontSize: '28px', marginBottom: '8px', color: 'var(--text-dark)' }}>Daftar Akun Baru</h2>
           <p style={{ color: 'var(--text-gray)', marginBottom: '32px', fontSize: '15px' }}>Lengkapi data di bawah ini untuk memulai belajarmu.</p>
+
+          {/* 👇 Error Popup */}
+          {showError && (
+            <div style={{
+              background: '#FEF2F2',
+              border: '1px solid #FCA5A5',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              animation: 'slideIn 0.3s ease'
+            }}>
+              <AlertCircle size={20} color="#DC2626" />
+              <span style={{ color: '#991B1B', fontWeight: 600, fontSize: '14px', flex: 1 }}>{errorMessage}</span>
+              <button onClick={() => setShowError(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#991B1B' }}>
+                <X size={16} />
+              </button>
+            </div>
+          )}
 
           <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
@@ -93,7 +143,7 @@ const Register = () => {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: 'var(--text-dark)' }}>Nomor HP atau Email</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: 'var(--text-dark)' }}>Email</label>
               <input 
                 type="email" 
                 required
@@ -135,6 +185,10 @@ const Register = () => {
       <style>{`
         @media (max-width: 900px) {
           .login-banner { display: none !important; }
+        }
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
         }
       `}</style>
     </div>
